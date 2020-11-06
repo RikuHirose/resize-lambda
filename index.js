@@ -10,12 +10,12 @@ exports.handler = async (event, context, callback) => {
 
     // Read options from the event parameter.
     // console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
+    const filename = event.path.replace(/^\//, "");
     const srcBucket = event.Records[0].s3.bucket.name;
     // Object key may have spaces or unicode non-ASCII characters.
     const srcKey    = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
     const dstBucket = "sample-webapp";
-    const dstKey    = "files/streaming/";
-    // const dstKey    = "files/streaming/" + srcKey;
+    const dstKey    = "files/streaming/" + filename;
 
     // Infer the image type from the file suffix.
     const typeMatch = srcKey.match(/\.([^.]*)$/);
