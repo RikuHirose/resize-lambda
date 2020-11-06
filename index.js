@@ -8,15 +8,21 @@ const s3 = new AWS.S3();
 
 exports.handler = async (event, context, callback) => {
 
+    // Lambda関数の設定画面から環境変数を設定
+    const DST_BUCKET    = process.env.DST_BUCKET;
+    const UPLOADED_KEY  = process.env.UPLOADED_KEY;
+    const RESIZED_KEY   = process.env.RESIZED_KEY;
+    const RESIZED_WIDTH = process.env.RESIZED_WIDTH;
+
     // Read options from the event parameter.
     // console.log("Reading options from event:\n", util.inspect(event, {depth: 5}));
 
     const srcBucket = event.Records[0].s3.bucket.name;
     // Object key may have spaces or unicode non-ASCII characters.
     const srcKey    = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
-    const dstBucket = "sample-webapp";
-    const filename  = srcKey.replace('files/original/', '');
-    const dstKey    = "files/streaming/" + filename;
+    const dstBucket = DST_BUCKET;
+    const filename  = srcKey.replace(UPLOADED_KEY, '');
+    const dstKey    = RESIZED_KEY + filename;
 
     // Infer the image type from the file suffix.
     const typeMatch = srcKey.match(/\.([^.]*)$/);
@@ -47,12 +53,12 @@ exports.handler = async (event, context, callback) => {
     }  
 
     // set thumbnail width. Resize will set the height automatically to maintain aspect ratio.
-    const width  = 200;
+    const width  = parseInt(RESIZED_WIDTH, 10);
 
     // Use the Sharp module to resize the image and save in a buffer.
-    try { 
-        var buffer = await sharp(origimage.Body).resize(width).toBuffer();
-            
+    try {
+        var buffer = await sharp(origimage.Body).resize(width).tiff({quality: 100}).toBuffer();
+
     } catch (error) {
         console.log(error);
         return;
